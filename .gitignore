@@ -1,0 +1,27 @@
+.idea/
+.vscode/
+
+.DS_Store
+
+# Environments
+.env
+.venv
+env/
+venv
+env.bak/
+venv.bak/
+data.db
+
+__pycache__/
+*.pyc
+config.ini
+dist/
+*.egg-info
+
+build/
+dist/
+out/*
+!out/.gitkeep
+!docker/.env
+*.spec
+*.iml
