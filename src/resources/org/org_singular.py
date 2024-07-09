@@ -1,8 +1,9 @@
 from abc import abstractmethod
 
-from flask_restful import reqparse, marshal_with
+from flask_restful import reqparse, marshal_with, abort
 
 from src.http.exception.exception import NotFoundException
+from src.middlewares.auth_middleware import auth_required
 from src.models.org.model_org import OrgModel
 from src.resources.org.org_base import OrgBase
 from src.resources.schemas.org_schema import org_all_attributes, org_all_fields
@@ -17,11 +18,12 @@ class OrgSingular(OrgBase):
                                   store_missing=False)
 
     @classmethod
+    @auth_required('org_admin')
     @marshal_with(org_all_fields)
     def get(cls, **kwargs):
         org = cls.get_org(**kwargs)
         if not org:
-            raise NotFoundException('Organization not found')
+            abort(404, description='Organization not found')
         return org
 
     @classmethod
