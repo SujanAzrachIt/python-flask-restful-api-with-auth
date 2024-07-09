@@ -14,19 +14,15 @@ class UserModel(ModelBase):
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     phone_number = db.Column(db.String, nullable=False, unique=True)
+    formatted_phone_number = db.Column(db.String, nullable=False, unique=True)
     preferred_phone_number = db.Column(db.String, nullable=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
-    otp = db.Column(db.Integer, nullable=True)
-    otp_expire = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_email_verified = db.Column(db.Boolean, default=False)
     org_id = db.Column(db.String(36), db.ForeignKey('orgs.id'), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
 
     # # Define any model associations here, if necessary
-    # org = db.relationship('OrgModel', backref=db.backref('users', lazy=True))
     roles = db.relationship('RoleModel', secondary=UserRolesModel.__tablename__, back_populates='users')
 
     def __repr__(self):
@@ -37,7 +33,7 @@ class UserModel(ModelBase):
         return cls.query.filter_by(id=_id).first()
 
     @classmethod
-    def find_by_phoneNumber(cls, _phoneNumber):
+    def find_by_phone_number(cls, _phoneNumber):
         return cls.query.filter_by(phone_number=_phoneNumber).first()
 
     def get_role_names(self):

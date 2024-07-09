@@ -1,6 +1,5 @@
 import datetime
 import os
-import random
 
 import jwt
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,6 +8,7 @@ from src.dtos.request.magic_link_request_dto import MagicLinkRequestDTO
 from src.dtos.request.sign_in_request_dto import SignInRequestDTO
 from src.dtos.response.sign_in_response_dto import SignInResponseDTO
 from src.models.user.model_user import UserModel
+from src.services.sms.sms_service import SmsService
 from src.utils.singleton import Singleton
 
 
@@ -21,7 +21,7 @@ class AuthService(metaclass=Singleton):
 
     @staticmethod
     def _get_user_by_phone(phone_number) -> UserModel:
-        user = UserModel.find_by_phoneNumber(phone_number)
+        user = UserModel.find_by_phone_number(phone_number)
         if not user:
             raise ValueError('User not found')
         return user
@@ -85,7 +85,8 @@ class AuthService(metaclass=Singleton):
                 return {'message': 'Account is inactive'}, 403
 
             roles = user.get_role_names()
-            if 'orgAdmin' in roles:
+            print(roles)
+            if 'org_admin' in roles:
                 if not dto.email or not dto.password:
                     return {'message': 'Email and password are required for admin sign-in'}, 400
 
@@ -117,12 +118,13 @@ class AuthService(metaclass=Singleton):
 
                 return response_dto.__dict__, 200
 
-            if not dto.bypass_otp:
-                if not dto.otp:
-                    return {'message': 'OTP is required for non-admin sign-in'}, 400
+            if not dto.otp:
+                return {'message': 'OTP is required for non-admin sign-in'}, 400
 
-                if user.otp != dto.otp or user.otp_expire < datetime.datetime.now(datetime.UTC):
-                    return {'message': 'Invalid or expired OTP'}, 401
+            verification_status = SmsService().verify_totp_code(user.formatted_phone_number, dto.otp)
+
+            if not verification_status:
+                return {'message': 'Invalid OTP'}, 400
 
             sign_in_token_payload = {
                 'userId': user.id,
@@ -159,16 +161,7 @@ class AuthService(metaclass=Singleton):
             if not user.is_active:
                 return {'message': 'Account is inactive'}, 403
 
-            if user.otp_expire and user.otp_expire > datetime.datetime.now(datetime.UTC):
-                return {'message': 'OTP already requested and not expired'}, 400
-
-            otp_value = random.randint(100000, 999999)
-            otp_expire = datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=5)
-
-            user.otp = otp_value
-            user.otp_expire = otp_expire
-            user.update()
-            # self._send_otp(phone_number, otp_value)
+            SmsService().send_sms(user.formatted_phone_number)
 
             return {'message': 'OTP sent successfully'}, 200
 

@@ -5,6 +5,10 @@ user_all_attributes = {
         'type': str,
         'required': True,
     },
+    'formatted_phone_number': {
+        'type': str,
+        'required': True,
+    },
     'preferred_phone_number': {
         'type': str,
     },
@@ -15,12 +19,6 @@ user_all_attributes = {
     'password': {
         'type': str,
         'required': True,
-    },
-    'otp': {
-        'type': int,
-    },
-    'otp_expire': {
-        'type': str,  # ISO 8601 datetime string
     },
     'is_email_verified': {
         'type': bool,

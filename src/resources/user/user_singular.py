@@ -3,7 +3,6 @@ from abc import abstractmethod
 from flask import request
 from flask_restful import reqparse, marshal_with
 
-from src.enums.role import Role
 from src.http.exception.exception import NotFoundException
 from src.models.user.model_user import UserModel
 from src.resources.schemas.user_schema import user_all_attributes, user_all_fields
