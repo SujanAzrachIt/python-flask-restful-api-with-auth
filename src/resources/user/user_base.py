@@ -1,12 +1,13 @@
-from flask_restful import Resource, reqparse
+from flask_restful import reqparse
 
 from src.enums.role import Role
+from src.http.resource import HttpResource
 from src.models.role.model_role import RoleModel
 from src.models.user.model_user import UserModel
 from src.resources.schemas.user_schema import user_all_attributes
 
 
-class UserBase(Resource):
+class UserBase(HttpResource):
     parser = reqparse.RequestParser()
     for attr in user_all_attributes:
         parser.add_argument(attr,

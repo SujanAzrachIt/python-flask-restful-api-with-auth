@@ -2,11 +2,12 @@ import datetime
 import os
 
 import jwt
-from sqlalchemy.exc import SQLAlchemyError
 
 from src.dtos.request.magic_link_request_dto import MagicLinkRequestDTO
 from src.dtos.request.sign_in_request_dto import SignInRequestDTO
 from src.dtos.response.sign_in_response_dto import SignInResponseDTO
+from src.http.exception.exception import BadDataException, ForbiddenException, NotFoundException, \
+    InternalServerErrorException
 from src.models.user.model_user import UserModel
 from src.services.sms.sms_service import SmsService
 from src.utils.singleton import Singleton
@@ -23,17 +24,17 @@ class AuthService(metaclass=Singleton):
     def _get_user_by_phone(phone_number) -> UserModel:
         user = UserModel.find_by_phone_number(phone_number)
         if not user:
-            raise ValueError('User not found')
+            raise NotFoundException('User not found')
         return user
 
     def generate_magic_link(self, dto: MagicLinkRequestDTO):
         if not dto.phone_number:
-            return {'message': 'Mobile Phone Number is required'}, 400
+            raise BadDataException("Phone Number is required")
 
         try:
             user = self._get_user_by_phone(dto.phone_number)
 
-            if 'orgAdmin' in user.roles:
+            if 'org_admin' in user.roles:
                 return {'adminSignInRequired': True}, 200
 
             entry_point = dto.magic_link_entry_point
@@ -65,39 +66,30 @@ class AuthService(metaclass=Singleton):
                 'signInToken': sign_in_token
             }, 200
 
-        except ValueError as e:
-            return {'message': str(e)}, 404
-        except SQLAlchemyError as e:
-            return {'message': 'An error occurred', 'error': str(e)}, 500
         except Exception as e:
-            return {'message': 'An error occurred', 'error': str(e)}, 500
+            raise InternalServerErrorException("something went wrong")
 
     def sign_in(self, dto: SignInRequestDTO):
         if not dto.phone_number:
-            return {'message': 'Mobile Phone Number is required'}, 400
+            raise BadDataException("Phone Number is required")
 
         try:
             user = self._get_user_by_phone(dto.phone_number)
-            if not user:
-                return {'message': 'User not found'}, 404
 
             if not user.is_active:
-                return {'message': 'Account is inactive'}, 403
+                raise ForbiddenException("Account is inactive")
 
             roles = user.get_role_names()
-            print(roles)
+
             if 'org_admin' in roles:
                 if not dto.email or not dto.password:
-                    return {'message': 'Email and password are required for admin sign-in'}, 400
+                    raise BadDataException("Email and password are required for admin sign-in")
 
-                if user.email != dto.email:
-                    return {'message': 'Invalid email or password'}, 401
-
-                if not user.check_password(dto.password):
-                    return {'message': 'Invalid email or password'}, 401
+                if user.email != dto.email or not user.check_password(dto.password):
+                    raise BadDataException("Invalid email or password")
 
                 if not user.is_email_verified:
-                    return {'message': 'Admin email is not verified. Please verify to continue.'}, 304
+                    raise ForbiddenException("Admin email is not verified. Please verify to continue")
 
                 payload = {
                     'userId': user.id,
@@ -119,12 +111,12 @@ class AuthService(metaclass=Singleton):
                 return response_dto.__dict__, 200
 
             if not dto.otp:
-                return {'message': 'OTP is required for non-admin sign-in'}, 400
+                return BadDataException("OTP is required for non-admin sign-in")
 
             verification_status = SmsService().verify_totp_code(user.formatted_phone_number, dto.otp)
 
             if not verification_status:
-                return {'message': 'Invalid OTP'}, 400
+                raise ForbiddenException("Invalid OTP")
 
             sign_in_token_payload = {
                 'userId': user.id,
@@ -146,28 +138,22 @@ class AuthService(metaclass=Singleton):
 
             return response_dto.__dict__, 200
 
-        except SQLAlchemyError as e:
-            return {'message': 'An error occurred', 'error': str(e)}, 500
         except Exception as e:
-            return {'message': 'An error occurred', 'error': str(e)}, 500
+            raise InternalServerErrorException("something went wrong")
 
     def request_otp(self, phone_number: str):
         if not phone_number:
-            return {'message': 'Mobile Phone Number is required'}, 400
+            raise BadDataException("Phone Number is required")
 
         try:
             user = self._get_user_by_phone(phone_number)
 
             if not user.is_active:
-                return {'message': 'Account is inactive'}, 403
+                raise ForbiddenException("Account is inactive")
 
             SmsService().send_sms(user.formatted_phone_number)
 
             return {'message': 'OTP sent successfully'}, 200
 
-        except ValueError as e:
-            return {'message': str(e)}, 404
-        except SQLAlchemyError as e:
-            return {'message': 'An error occurred', 'error': str(e)}, 500
         except Exception as e:
-            return {'message': 'An error occurred', 'error': str(e)}, 500
+            raise InternalServerErrorException("something went wrong")

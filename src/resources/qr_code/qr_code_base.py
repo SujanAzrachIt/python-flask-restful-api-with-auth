@@ -1,10 +1,11 @@
-from flask_restful import reqparse, Resource
+from flask_restful import reqparse
 
+from src.http.resource import HttpResource
 from src.models.qr_code.model_qr_code import QrCodeModel
 from src.resources.schemas.qr_code_schema import qrcode_all_attributes
 
 
-class QrCodeBase(Resource):
+class QrCodeBase(HttpResource):
     parser = reqparse.RequestParser()
     for attr in qrcode_all_attributes:
         parser.add_argument(attr,

@@ -1,10 +1,11 @@
-from flask_restful import Resource, reqparse
+from flask_restful import reqparse
 
+from src.http.resource import HttpResource
 from src.models.org.model_org import OrgModel
 from src.resources.schemas.org_schema import org_all_attributes
 
 
-class OrgBase(Resource):
+class OrgBase(HttpResource):
     parser = reqparse.RequestParser()
     for attr in org_all_attributes:
         parser.add_argument(attr,

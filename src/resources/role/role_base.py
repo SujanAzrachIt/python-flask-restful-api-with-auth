@@ -1,10 +1,11 @@
-from flask_restful import Resource, reqparse
+from flask_restful import reqparse
 
+from src.http.resource import HttpResource
 from src.models.role.model_role import RoleModel
 from src.resources.schemas.role_schema import role_all_attributes
 
 
-class RoleBase(Resource):
+class RoleBase(HttpResource):
     parser = reqparse.RequestParser()
     for attr in role_all_attributes:
         parser.add_argument(attr,

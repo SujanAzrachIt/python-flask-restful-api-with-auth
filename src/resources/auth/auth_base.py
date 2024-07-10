@@ -1,11 +1,12 @@
 from abc import abstractmethod
 
-from flask_restful import reqparse, Resource
+from flask_restful import reqparse
 
+from src.http.resource import HttpResource
 from src.resources.schemas.auth_schema import auth_request_attribute
 
 
-class AuthBase(Resource):
+class AuthBase(HttpResource):
     parser = reqparse.RequestParser()
     for attr in auth_request_attribute:
         parser.add_argument(attr,

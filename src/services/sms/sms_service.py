@@ -21,7 +21,6 @@ class SmsService(metaclass=Singleton):
         return verification.status
 
     def verify_totp_code(self, phone_number, code):
-        print(phone_number, code)
         verification_check = self.client.verify.v2.services(
             "VAbb0a6ce6a831f2c480959ee4393f9401"
         ).verification_checks.create(to=phone_number, code=code)

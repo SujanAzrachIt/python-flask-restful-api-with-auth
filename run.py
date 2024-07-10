@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
-from flask.cli import load_dotenv
 from gevent import monkey
 monkey.patch_all()
 
 import multiprocessing
 import os
-
 import click
 
 from src import AppSetting, GunicornFlaskApplication
-
-# Load environment variables from .env file
-load_dotenv(".env")
 
 CLI_CTX_SETTINGS = dict(help_option_names=["-h", "--help"], max_content_width=120, ignore_unknown_options=True,
                         allow_extra_args=True)
