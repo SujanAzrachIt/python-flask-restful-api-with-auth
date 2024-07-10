@@ -1,7 +1,9 @@
 import os
 
 import jwt
-from flask import request, jsonify, g
+from flask import request, g
+
+from src.http.exception.exception import UnauthorizedException, ForbiddenException
 
 
 def auth_required(*roles):
@@ -16,20 +18,21 @@ def auth_required(*roles):
                     payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
                     g.user = payload
                 except jwt.ExpiredSignatureError:
-                    return {'message': 'Token has expired'}, 401
+                    raise UnauthorizedException("Token Expired")
                 except jwt.InvalidTokenError:
-                    return {'message': 'Invalid token'}, 401
+                    raise UnauthorizedException("Invalid Token")
             else:
-                g.user = None
-                return {'message': 'Authorization token is missing'}, 401
+                raise UnauthorizedException("Authorization token is missing")
 
-            if roles:
+            if len(roles) >= 0:
                 if not g.get('user'):
-                    return {'message': 'Authorization token is missing'}, 401
+                    raise UnauthorizedException("Authorization token is missing")
                 user_roles = g.user.get('role', [])
                 if not any(role in user_roles for role in roles):
-                    return {'message': 'Permission denied'}, 403
+                    raise ForbiddenException("Permission Denied")
 
             return f(*args, **kwargs)
+
         return decorated_function
+
     return decorator
