@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+from dotenv import load_dotenv
 from gevent import monkey
+
 monkey.patch_all()
 
 import multiprocessing
@@ -10,6 +12,8 @@ from src import AppSetting, GunicornFlaskApplication
 
 CLI_CTX_SETTINGS = dict(help_option_names=["-h", "--help"], max_content_width=120, ignore_unknown_options=True,
                         allow_extra_args=True)
+
+load_dotenv()  # Load environment variables from .env file
 
 
 def number_of_workers():

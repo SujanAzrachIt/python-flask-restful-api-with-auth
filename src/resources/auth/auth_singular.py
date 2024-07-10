@@ -19,8 +19,8 @@ class GenerateMagicLinkSingular(AuthBase):
     def post(cls):
         data = cls.patch_parser.parse_args()
         dto = MagicLinkRequestDTO(
-            phone_number=data['phoneNumber'],
-            magic_link_entry_point=data.get('magicLinkEntryPoint', '/')
+            phone_number=data['phone_number'],
+            magic_link_entry_point=data.get('magic_link_entry_point', '/')
         )
 
         result, status_code = AuthService().generate_magic_link(dto)
@@ -41,10 +41,10 @@ class SignInSingular(AuthBase):
     def post(cls):
         data = cls.patch_parser.parse_args()
         dto = SignInRequestDTO(
-            phone_number=data.get('phoneNumber'),
+            phone_number=data.get('phone_number'),
             otp=data.get('otp'),
-            entry_point=data.get('entryPoint', '/'),
-            bypass_otp=data.get('bypassOtp', False),
+            entry_point=data.get('entry_point', '/'),
+            bypass_otp=data.get('bypass_otp', False),
             email=data.get('email'),
             password=data.get('password')
         )
@@ -58,6 +58,6 @@ class RequestOTPSingular(AuthBase):
     @classmethod
     def post(cls):
         data = cls.parse_args()
-        result, status_code = AuthService().request_otp(data.get('phoneNumber'))
+        result, status_code = AuthService().request_otp(data.get('phone_number'))
 
         return result, status_code

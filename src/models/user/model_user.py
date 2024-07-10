@@ -1,7 +1,7 @@
+import uuid
+
 import bcrypt
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import uuid
 
 from src.models.model_base import ModelBase
 from src.models.user_role.model_user_role import UserRolesModel
@@ -33,8 +33,8 @@ class UserModel(ModelBase):
         return cls.query.filter_by(id=_id).first()
 
     @classmethod
-    def find_by_phone_number(cls, _phoneNumber):
-        return cls.query.filter_by(phone_number=_phoneNumber).first()
+    def find_by_phone_number(cls, _phone_number):
+        return cls.query.filter_by(phone_number=_phone_number).first()
 
     def get_role_names(self):
         return [role.name.value for role in self.roles]

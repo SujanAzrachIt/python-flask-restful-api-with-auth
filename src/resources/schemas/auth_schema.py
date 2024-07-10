@@ -1,5 +1,5 @@
 auth_request_attribute = {
-    'phoneNumber': {
+    'phone_number': {
         'type': str,
         'required': True,
         'help': 'Mobile Phone Number is required'
@@ -7,12 +7,12 @@ auth_request_attribute = {
 }
 
 magic_link_generate_attribute = {
-    'phoneNumber': {
+    'phone_number': {
         'type': str,
         'required': True,
         'help': 'Mobile Phone Number is required'
     },
-    'magicLinkEntryPoint': {
+    'magic_link_entry_point': {
         'type': str,
         'required': False,
         'help': 'Entry Point for the Magic Link'
@@ -20,7 +20,7 @@ magic_link_generate_attribute = {
 }
 
 sign_in_attribute = {
-    'phoneNumber': {
+    'phone_number': {
         'type': str,
         'required': True,
         'help': 'Mobile Phone Number is required'
@@ -30,13 +30,13 @@ sign_in_attribute = {
         'required': False,
         'help': 'One-Time Password'
     },
-    'entryPoint': {
+    'entry_point': {
         'type': str,
         'required': False,
         'default': '/',
         'help': 'Entry Point for the sign-in'
     },
-    'bypassOtp': {
+    'bypass_otp': {
         'type': bool,
         'required': False,
         'default': False,

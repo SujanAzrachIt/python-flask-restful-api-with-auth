@@ -1,3 +1,4 @@
+import logging
 import os
 
 from twilio.base.exceptions import TwilioRestException
@@ -14,15 +15,23 @@ class SmsService(metaclass=Singleton):
         self.client = Client(self.twilio_account_sid, self.twilio_auth_token)
 
     def send_sms(self, phone_number):
-        verification = self.client.verify.v2.services(self.twilio_service_sid).verifications.create(
-            channel="sms",
-            to=phone_number
-        )
-        return verification.status
+        try:
+            verification = self.client.verify.v2.services(self.twilio_service_sid).verifications.create(
+                channel="sms",
+                to=phone_number
+            )
+            return verification.status
+        except TwilioRestException as e:
+            logging.error(f"Failed to send SMS to {phone_number}: {e}")
+            return None
 
     def verify_totp_code(self, phone_number, code):
-        verification_check = self.client.verify.v2.services(
-            "VAbb0a6ce6a831f2c480959ee4393f9401"
-        ).verification_checks.create(to=phone_number, code=code)
-
-        return verification_check.status == 'approved'
+        try:
+            verification_check = self.client.verify.v2.services(self.twilio_service_sid).verification_checks.create(
+                to=phone_number,
+                code=code
+            )
+            return verification_check.status == 'approved'
+        except TwilioRestException as e:
+            logging.error(f"Failed to verify TOTP code for {phone_number}: {e}")
+            return False
