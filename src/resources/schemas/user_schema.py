@@ -35,10 +35,10 @@ user_return_attributes = {
     'id': {
         'type': str,
     },
-    'created_at': {
+    'created_on': {
         'type': str,
     },
-    'updated_at': {
+    'updated_on': {
         'type': str,
     }
 }

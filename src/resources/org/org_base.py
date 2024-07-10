@@ -2,7 +2,13 @@ from flask_restful import reqparse
 
 from src.http.resource import HttpResource
 from src.models.org.model_org import OrgModel
-from src.resources.schemas.org_schema import org_all_attributes
+from src.resources.schemas.org_schema import org_all_attributes, org_all_fields, org_all_fields_with_children
+from src.resources.utils import model_marshaller_with_children
+
+
+def org_marshaller(data: any, args: dict):
+    return model_marshaller_with_children(data, args, org_all_fields,
+                                          org_all_fields_with_children)
 
 
 class OrgBase(HttpResource):

@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask_restful import Api
 
 from src.resources.auth.auth_singular import GenerateMagicLinkSingular, SignInSingular, RequestOTPSingular
+from src.resources.org.org_plural import OrgPlural
 from src.resources.org.org_singular import OrgSingular
 from src.resources.qr_code.qr_code_singular import QrCodeSingular, GenerateQrCodeSingular
 from src.resources.role.role_singular import RoleSingular
@@ -9,6 +10,7 @@ from src.resources.user.user_singular import UserSingular
 
 bp_org = Blueprint('orgs', __name__, url_prefix='/api/orgs')
 api_org = Api(bp_org)
+api_org.add_resource(OrgPlural, '')
 api_org.add_resource(OrgSingular, '/<string:id>')
 
 bp_qrcode = Blueprint('qrcodes', __name__, url_prefix='/api/qrcodes')
