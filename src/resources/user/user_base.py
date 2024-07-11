@@ -4,7 +4,13 @@ from src.enums.role import Role
 from src.http.resource import HttpResource
 from src.models.role.model_role import RoleModel
 from src.models.user.model_user import UserModel
-from src.resources.schemas.user_schema import user_all_attributes
+from src.resources.schemas.user_schema import user_all_attributes, user_all_fields, user_all_fields_with_children
+from src.resources.utils import model_marshaller_with_children
+
+
+def user_marshaller(data: any, args: dict):
+    return model_marshaller_with_children(data, args, user_all_fields,
+                                          user_all_fields_with_children)
 
 
 class UserBase(HttpResource):

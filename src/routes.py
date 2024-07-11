@@ -6,7 +6,8 @@ from src.resources.org.org_plural import OrgPlural
 from src.resources.org.org_singular import OrgSingular
 from src.resources.qr_code.qr_code_singular import QrCodeSingular, GenerateQrCodeSingular
 from src.resources.role.role_singular import RoleSingular
-from src.resources.user.user_singular import UserSingular
+from src.resources.user.user_plural import UserPlural, UserPluralByOrgId
+from src.resources.user.user_singular import UserSingular, SuperAdminUserSingular
 
 bp_org = Blueprint('orgs', __name__, url_prefix='/api/orgs')
 api_org = Api(bp_org)
@@ -24,7 +25,10 @@ api_role.add_resource(RoleSingular, '/<string:id>')
 
 bp_user = Blueprint('users', __name__, url_prefix='/api/users')
 api_user = Api(bp_user)
+api_user.add_resource(UserPlural, '/')
+api_user.add_resource(UserPluralByOrgId, '/org_id/<string:org_id>')
 api_user.add_resource(UserSingular, '/<string:id>')
+api_user.add_resource(SuperAdminUserSingular, '/super-admin')
 
 bp_auth = Blueprint('auth', __name__, url_prefix='/api/auth')
 api_auth = Api(bp_auth)

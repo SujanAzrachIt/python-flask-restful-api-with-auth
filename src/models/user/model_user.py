@@ -20,6 +20,7 @@ class UserModel(ModelBase):
     is_email_verified = db.Column(db.Boolean, default=False)
     org_id = db.Column(db.String(36), db.ForeignKey('orgs.id'), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    is_deleted = db.Column(db.Boolean, default=False)
 
     # # Define any model associations here, if necessary
     roles = db.relationship('RoleModel', secondary=UserRolesModel.__tablename__, back_populates='users')
@@ -30,6 +31,10 @@ class UserModel(ModelBase):
     @classmethod
     def find_by_id(cls, _id: str):
         return cls.query.filter_by(id=_id).first()
+
+    @classmethod
+    def find_by_org_id(cls, _org_id: str):
+        return cls.query.filter_by(org_id=_org_id).all()
 
     @classmethod
     def find_by_phone_number(cls, _phone_number):

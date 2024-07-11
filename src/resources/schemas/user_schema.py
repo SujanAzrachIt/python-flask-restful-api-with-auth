@@ -1,3 +1,8 @@
+from copy import deepcopy
+
+from flask_restful import fields
+
+from src.resources.schemas.role_schema import role_all_fields
 from src.resources.utils import map_rest_schema
 
 user_all_attributes = {
@@ -8,9 +13,6 @@ user_all_attributes = {
     'formatted_phone_number': {
         'type': str,
         'required': True,
-    },
-    'preferred_phone_number': {
-        'type': str,
     },
     'email': {
         'type': str,
@@ -46,3 +48,9 @@ user_return_attributes = {
 user_all_fields = {}
 map_rest_schema(user_return_attributes, user_all_fields)
 map_rest_schema(user_all_attributes, user_all_fields)
+
+user_all_fields_with_children_base = {
+    'roles': fields.List(fields.Nested(role_all_fields))
+}
+user_all_fields_with_children = deepcopy(user_all_fields)
+user_all_fields_with_children.update(user_all_fields_with_children_base)

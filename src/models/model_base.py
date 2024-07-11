@@ -53,6 +53,10 @@ class ModelBase(db.Model):
         dbsession.commit(db)
         return changed
 
+    def soft_delete(self):
+        self.is_deleted = True
+        db.session.commit()
+
     def check_self(self) -> (bool, any):
         return True
 
