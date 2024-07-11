@@ -14,6 +14,19 @@ class SmsService(metaclass=Singleton):
         self.twilio_service_sid = os.getenv('TWILIO_SERVICE_SID', '')
         self.client = Client(self.twilio_account_sid, self.twilio_auth_token)
 
+    def send_magic_link_sms(self, phone_number, message_body):
+        try:
+            message = self.client.messages.create(
+                body=message_body,
+                from_="+9779860171119",
+                to="+9779861308907",
+            )
+        except TwilioRestException as e:
+            logging.error(f"Failed to send magic link SMS to {phone_number}: {e}")
+            return None
+
+        return message.status
+
     def send_sms(self, phone_number):
         try:
             verification = self.client.verify.v2.services(self.twilio_service_sid).verifications.create(
@@ -22,7 +35,7 @@ class SmsService(metaclass=Singleton):
             )
             return verification.status
         except TwilioRestException as e:
-            logging.error(f"Failed to send SMS to {phone_number}: {e}")
+            logging.error(f"Failed to send verification code SMS to {phone_number}: {e}")
             return None
 
     def verify_totp_code(self, phone_number, code):

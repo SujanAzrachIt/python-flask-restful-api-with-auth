@@ -23,7 +23,7 @@ class OrgSingular(OrgBase):
     def get(cls, **kwargs):
         org = cls.get_org(**kwargs)
         if not org:
-            abort(404, description='Organization not found')
+            raise NotFoundException('Organization not found')
         return org
 
     @classmethod

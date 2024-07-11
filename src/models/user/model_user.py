@@ -15,7 +15,6 @@ class UserModel(ModelBase):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     phone_number = db.Column(db.String, nullable=False, unique=True)
     formatted_phone_number = db.Column(db.String, nullable=False, unique=True)
-    preferred_phone_number = db.Column(db.String, nullable=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
     is_email_verified = db.Column(db.Boolean, default=False)
