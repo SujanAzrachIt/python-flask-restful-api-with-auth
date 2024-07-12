@@ -1,12 +1,13 @@
 import os
 from abc import ABC
 
+from flask_migrate import upgrade
 from gunicorn.app.base import BaseApplication
 from gunicorn.arbiter import Arbiter
 from gunicorn.glogging import Logger
 from gunicorn.workers.ggevent import GeventWorker
 
-from .app import create_app, db
+from .app import create_app
 from .pyinstaller import resource_path
 from .setting import AppSetting
 
@@ -63,7 +64,8 @@ class GunicornFlaskApplication(BaseApplication, ABC):
     def wsgi(self):
         output = super(GunicornFlaskApplication, self).wsgi()
         with self.application.app_context():
-            db.create_all()
+            # run migration
+            upgrade()
             from src.background import Background
             Background.run()
         return output

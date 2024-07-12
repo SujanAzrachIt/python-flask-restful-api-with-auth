@@ -3,6 +3,7 @@ import os
 
 from flask import Flask
 from flask_cors import CORS
+from flask_migrate import Migrate
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import event
@@ -10,6 +11,7 @@ from sqlalchemy.engine import Engine
 
 db = SQLAlchemy()
 socketio = SocketIO(cors_allowed_origins="*")
+migrate = Migrate()
 
 
 def __db_setup(_app, _app_setting, db_pg: bool = False):
@@ -23,7 +25,10 @@ def __db_setup(_app, _app_setting, db_pg: bool = False):
     return _app
 
 
-def create_app(app_setting) -> Flask:
+def create_app(app_setting=None) -> Flask:
+    if app_setting is None:
+        from src import AppSetting
+        app_setting = AppSetting(prod=False)
     os.environ.setdefault('FLASK_ENV', 'production' if app_setting.prod else 'development')
     app = Flask(__name__)
     cors = CORS(app, resources={r"/*": {"origins": "*"}})
@@ -31,6 +36,7 @@ def create_app(app_setting) -> Flask:
     app.config['CORS_HEADERS'] = 'Content-Type'
     cors.init_app(app)
     db.init_app(__db_setup(app, app_setting, True))
+    Migrate().init_app(app, db)
     socketio.init_app(app)
 
     def setup(self):
