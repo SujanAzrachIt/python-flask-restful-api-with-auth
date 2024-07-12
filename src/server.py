@@ -1,7 +1,8 @@
+import logging
 import os
+import subprocess
 from abc import ABC
 
-from flask_migrate import upgrade
 from gunicorn.app.base import BaseApplication
 from gunicorn.arbiter import Arbiter
 from gunicorn.glogging import Logger
@@ -65,7 +66,8 @@ class GunicornFlaskApplication(BaseApplication, ABC):
         output = super(GunicornFlaskApplication, self).wsgi()
         with self.application.app_context():
             # run migration
-            upgrade()
+            migration_result = subprocess.run(['flask', 'db', 'upgrade'], check=True, text=True, capture_output=True)
+            logging.info(migration_result.stderr)
             from src.background import Background
             Background.run()
         return output
