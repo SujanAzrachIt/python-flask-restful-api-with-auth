@@ -18,8 +18,8 @@ class SmsService(metaclass=Singleton):
         try:
             message = self.client.messages.create(
                 body=message_body,
-                from_="+9779860171119",
-                to="+9779861308907",
+                from_=os.getenv('TWILIO_SMS_FROM', '+9779860000000'),
+                to="phone_number",
             )
         except TwilioRestException as e:
             logging.error(f"Failed to send magic link SMS to {phone_number}: {e}")

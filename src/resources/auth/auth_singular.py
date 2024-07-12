@@ -1,10 +1,11 @@
 from flask_restful import reqparse
 
-from src.dtos.request.magic_link_request_dto import MagicLinkRequestDTO
-from src.dtos.request.sign_in_request_dto import SignInRequestDTO
+from src.http.exception.exception import NotFoundException
+from src.models.user.model_user import UserModel
 from src.resources.auth.auth_base import AuthBase
 from src.resources.schemas.auth_schema import magic_link_generate_attribute, sign_in_attribute
 from src.services.auth.auth_service import AuthService
+from src.services.auth.models.auth_model import SignInRequestDTO
 
 
 class GenerateMagicLinkSingular(AuthBase):
@@ -18,12 +19,12 @@ class GenerateMagicLinkSingular(AuthBase):
     @classmethod
     def post(cls):
         data = cls.patch_parser.parse_args()
-        dto = MagicLinkRequestDTO(
-            phone_number=data['phone_number'],
-            magic_link_entry_point=data.get('magic_link_entry_point', '/')
-        )
 
-        result = AuthService().generate_magic_link(dto)
+        user = UserModel.find_by_phone_number(data['phone_number'])
+        if not user:
+            raise NotFoundException('User not found')
+
+        result = AuthService().generate_magic_link(user, data.get('magic_link_entry_point', '/'))
         return result
 
 
@@ -48,7 +49,11 @@ class SignInSingular(AuthBase):
             password=data.get('password')
         )
 
-        result = AuthService().sign_in(dto)
+        user = UserModel.find_by_phone_number(data['phone_number'])
+        if not user:
+            raise NotFoundException('User not found')
+
+        result = AuthService().sign_in(dto, user)
         return result
 
 
@@ -57,5 +62,10 @@ class RequestOTPSingular(AuthBase):
     @classmethod
     def post(cls):
         data = cls.parse_args()
-        result = AuthService().request_otp(data.get('phone_number'))
+
+        user = UserModel.find_by_phone_number(data['phone_number'])
+        if not user:
+            raise NotFoundException('User not found')
+
+        result = AuthService().request_otp(user)
         return result

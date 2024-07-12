@@ -3,12 +3,9 @@ import os
 
 import jwt
 
-from src.dtos.request.magic_link_request_dto import MagicLinkRequestDTO
-from src.dtos.request.sign_in_request_dto import SignInRequestDTO
-from src.dtos.response.magic_link_response_dto import MagicLinkResponseDTO
-from src.dtos.response.sign_in_response_dto import SignInResponseDTO
-from src.http.exception.exception import BadDataException, ForbiddenException, NotFoundException
+from src.http.exception.exception import BadDataException, ForbiddenException
 from src.models.user.model_user import UserModel
+from src.services.auth.models.auth_model import MagicLinkResponseDTO, SignInResponseDTO, SignInRequestDTO
 from src.services.sms.sms_service import SmsService
 from src.utils.singleton import Singleton
 
@@ -20,20 +17,15 @@ class AuthService(metaclass=Singleton):
     def _generate_token(self, payload):
         return jwt.encode(payload, self.jwt_secret, algorithm='HS256')
 
-    @staticmethod
-    def _get_user_by_phone(phone_number) -> UserModel:
-        user = UserModel.find_by_phone_number(phone_number)
-        if not user:
-            raise NotFoundException('User not found')
-        return user
-
-    def generate_magic_link(self, dto: MagicLinkRequestDTO):
-        if not dto.phone_number:
-            raise BadDataException("Phone Number is required")
-
-        user = self._get_user_by_phone(dto.phone_number)
-        entry_point = dto.magic_link_entry_point
+    def generate_magic_link(self, user: UserModel, entry_point: str):
         roles = user.get_role_names()
+
+        if 'super_admin' in roles or 'admin' in roles or 'org_admin' in roles:
+            response = MagicLinkResponseDTO(
+                message='Admin Credentials Required',
+                admin_sign_in_required=True
+            )
+            return response.__dict__
 
         magic_link_token_payload = {
             "user_id": user.id,
@@ -50,19 +42,14 @@ class AuthService(metaclass=Singleton):
         sms_message_body = f"Your login link is {magic_link}"
         SmsService().send_magic_link_sms(user.formatted_phone_number, sms_message_body)
 
-        response_dto = MagicLinkResponseDTO(
+        response = MagicLinkResponseDTO(
             message='Magic link generated',
             magic_link=magic_link
         )
 
-        return response_dto.__dict__
+        return response.__dict__
 
-    def sign_in(self, dto: SignInRequestDTO):
-        if not dto.phone_number:
-            raise BadDataException("Phone Number is required")
-
-        user = self._get_user_by_phone(dto.phone_number)
-
+    def sign_in(self, dto: SignInRequestDTO, user: UserModel):
         if not user.is_active:
             raise ForbiddenException("Account is inactive")
 
@@ -86,7 +73,7 @@ class AuthService(metaclass=Singleton):
             }
             admin_token = self._generate_token(payload)
 
-            response_dto = SignInResponseDTO(
+            response = SignInResponseDTO(
                 message='Admin authenticated successfully',
                 token=admin_token,
                 role=roles,
@@ -94,7 +81,7 @@ class AuthService(metaclass=Singleton):
                 org_id=user.org_id,
                 redirect_url=dto.entry_point
             )
-            return response_dto.__dict__
+            return response.__dict__
 
         if not dto.otp:
             raise BadDataException("OTP is required for non-admin sign-in")
@@ -113,7 +100,7 @@ class AuthService(metaclass=Singleton):
         }
         sign_in_token = self._generate_token(sign_in_token_payload)
 
-        response_dto = SignInResponseDTO(
+        response = SignInResponseDTO(
             message='Sign-in successful',
             token=sign_in_token,
             role=roles,
@@ -121,14 +108,9 @@ class AuthService(metaclass=Singleton):
             org_id=user.org_id,
             redirect_url=dto.entry_point
         )
-        return response_dto.__dict__
+        return response.__dict__
 
-    def request_otp(self, phone_number: str):
-        if not phone_number:
-            raise NotFoundException("Phone Number is required")
-
-        user = self._get_user_by_phone(phone_number)
-
+    def request_otp(self, user: UserModel):
         if not user.is_active:
             raise ForbiddenException("Account is inactive")
 
